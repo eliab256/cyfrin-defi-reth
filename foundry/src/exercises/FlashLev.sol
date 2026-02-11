@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity ^0.8.26;
 
 import {IERC20} from "../interfaces/IERC20.sol";
 import {Pay} from "../aave/Pay.sol";
@@ -62,6 +62,8 @@ contract FlashLev is Pay, Token, AaveHelper, SwapHelper {
     flash_loan_usd = base_col_usd * k <= base_col_usd * LTV / (1 - LTV)
     */
 
+    uint256 private constant ONE_FOR_LTV = 1e4;
+
     /// @notice Get the maximum flash loan amount for a given collateral type and base collateral amount
     /// @param collateral Address of the collateral asset
     /// @param baseColAmount The amount of collateral to use for the loan
@@ -71,12 +73,24 @@ contract FlashLev is Pay, Token, AaveHelper, SwapHelper {
     /// @return maxLev The maximum leverage factor allowed for the collateral (4 decimals)
     /// @dev This function calculates the maximum loan amount and related values
     //       based on the collateral's price and LTV.
-    function getMaxFlashLoanAmountUsd(address collateral, uint256 baseColAmount)
+    function getMaxFlashLoanAmountUsd(
+        address collateral,
+        uint256 baseColAmount
+    )
         external
         view
         returns (uint256 max, uint256 price, uint256 ltv, uint256 maxLev)
     {
         // Write your code here
+        price = oracle.getAssetPrice(collateral);
+
+        uint256 decimals;
+        (decimals, ltv, , , , , , , , ) = dataProvider.getReserveConfigurationData(collateral);
+
+        uint256 baseColAmountUsd = (baseColAmount * price) / (10 ** decimals);
+        max = (baseColAmountUsd * ltv) / (ONE_FOR_LTV - ltv);
+        maxLev =( ltv * ONE_FOR_LTV) / (ONE_FOR_LTV - ltv);
+        ltv = ltv;
     }
 
     /// @notice Parameters for the swap process

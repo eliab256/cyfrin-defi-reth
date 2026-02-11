@@ -74,19 +74,20 @@ contract FlashLevTest is Test {
         console.log("Liquidation threshold: %e", currentLiquidationThreshold);
         console.log("Health factor: %e", healthFactor);
 
-        return Info({
-            hf: healthFactor,
-            col: totalCollateralBase,
-            debt: totalDebtBase,
-            available: availableBorrowsBase
-        });
+        return
+            Info({
+                hf: healthFactor,
+                col: totalCollateralBase,
+                debt: totalDebtBase,
+                available: availableBorrowsBase
+            });
     }
 
     function test_getMaxFlashLoanAmountUsd() public {
         uint256 colAmount = 1e18;
 
-        (uint256 max, uint256 price, uint256 ltv, uint256 maxLev) =
-            flashLev.getMaxFlashLoanAmountUsd(RETH, colAmount);
+        (uint256 max, uint256 price, uint256 ltv, uint256 maxLev) = flashLev
+            .getMaxFlashLoanAmountUsd(RETH, colAmount);
         console.log("Max flash loan USD: %e", max);
         console.log("Collateral price: %e", price);
         console.log("LTV: %e", ltv);
@@ -102,8 +103,8 @@ contract FlashLevTest is Test {
     function test_flashLev() public {
         uint256 colAmount = 1e18;
 
-        (uint256 max, uint256 price, uint256 ltv, uint256 maxLev) =
-            flashLev.getMaxFlashLoanAmountUsd(RETH, colAmount);
+        (uint256 max, uint256 price, uint256 ltv, uint256 maxLev) = flashLev
+            .getMaxFlashLoanAmountUsd(RETH, colAmount);
         console.log("Max flash loan USD: %e", max);
         console.log("Collateral price: %e", price);
         console.log("LTV: %e", ltv);
@@ -112,7 +113,7 @@ contract FlashLevTest is Test {
         console.log("--------- open ------------");
 
         // Assumes 1 coin = 1 USD
-        uint256 coinAmount = max * 98 / 100;
+        uint256 coinAmount = (max * 98) / 100;
 
         proxy.execute(
             address(flashLev),
@@ -125,7 +126,8 @@ contract FlashLevTest is Test {
                         colAmount: colAmount,
                         coinAmount: coinAmount,
                         swap: FlashLev.SwapParams({
-                            amountOutMin: coinAmount * 1e8 / price * 98 / 100,
+                            amountOutMin: (((coinAmount * 1e8) / price) * 98) /
+                                100,
                             data: abi.encode(
                                 true,
                                 UNISWAP_V3_POOL_FEE_DAI_WETH,
@@ -160,7 +162,7 @@ contract FlashLevTest is Test {
                         collateral: RETH,
                         colAmount: colAmount,
                         swap: FlashLev.SwapParams({
-                            amountOutMin: coinDebt * 98 / 100,
+                            amountOutMin: (coinDebt * 98) / 100,
                             data: abi.encode(
                                 false,
                                 UNISWAP_V3_POOL_FEE_DAI_WETH,
